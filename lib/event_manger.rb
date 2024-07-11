@@ -50,6 +50,25 @@ def legislators_by_zipcode(zip)
   end
 end
 
+def format_date(date_and_time)
+  date = Time.strptime(date_and_time,"%m/%d/%Y %k:%M")
+  date = Time.new(date.year + 2000, date.month, date.day, date.hour,date.min)
+end
+
+def hour(date)
+  date.hour
+end
+
+def week_day(date)
+  date.wday
+end
+
+def average_hour(hours)
+  hours.reduce {|sum,num| sum+= num}/hours.length
+end
+def average_week_day(days)
+  days.reduce {|sum,num| sum+= num}/days.length
+end
 def save_thank_you_letter(id,form_letter)
   Dir.mkdir('output') unless Dir.exist?('output')
 
@@ -70,17 +89,34 @@ contents = CSV.open(
 
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
-
+hours = Array.new
+days = Array.new
 contents.each do |row|
   id = row[0]
+
+  
+
   name = row[:first_name]
+
   zipcode = clean_zipcode(row[:zipcode])
+
   phone_number = clean_phone_number(row[:homephone])
+
+  date = format_date(row[:regdate])
+
+  hours.push(hour(date))
+
+  days.push(week_day(date))
+
   legislators = legislators_by_zipcode(zipcode)
 
   form_letter = erb_template.result(binding)
 
   save_thank_you_letter(id,form_letter)
 
-  puts "#{name} #{zipcode} #{phone_number}"
+  puts "#{name} #{zipcode} #{phone_number} #{date}"
 end
+
+puts "Most Registerd hour: #{average_hour(hours)}"
+puts "Most Registerd day: #{average_hour(days)}"
+
